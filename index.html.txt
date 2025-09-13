@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MEDI-TRACK - Simplifying Hospital Visits</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #60a5fa 0%, #34d399 100%);
+      min-height: 100vh; color: #333;
+    }
+    .glass-effect {
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.2);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    }
+    .gradient-text {
+      background: linear-gradient(135deg, #60a5fa 0%, #34d399 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      color: #333; /* Fallback for accessibility */
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #60a5fa 0%, #34d399 100%);
+      color: white; border: none; border-radius: 12px;
+      padding: 12px 28px; font-weight: 600;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(96,165,250,0.3);
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(96,165,250,0.4);
+    }
+    .btn-secondary {
+      background: white; color: #60a5fa;
+      border: 2px solid #60a5fa;
+      border-radius: 12px; padding: 12px 28px;
+      font-weight: 600; transition: all 0.3s ease;
+    }
+    .btn-secondary:hover {
+      background: #60a5fa; color: white;
+    }
+    .btn-back {
+      background: #6c757d; color: white;
+      border: none; border-radius: 12px;
+      padding: 12px 28px; font-weight: 600;
+      transition: all 0.3s ease;
+      width: 100%; margin-top: 20px;
+    }
+    .btn-back:hover {
+      background: #5a6268; transform: translateY(-2px);
+    }
+    .form-input {
+      background: rgba(255,255,255,0.9); border: 2px solid #e2e8f0;
+      border-radius: 12px; padding: 14px;
+      width: 100%; margin: 8px 0;
+      transition: all 0.3s ease;
+      font-size: 1.1rem; /* Larger font for accessibility */
+    }
+    .form-input:focus {
+      outline: none; border-color: #60a5fa;
+      box-shadow: 0 0 0 3px rgba(96,165,250,0.1);
+    }
+    .item-card {
+      background: white; border-radius: 16px; padding: 20px;
+      margin: 16px 0; box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+      border: 1px solid rgba(96,165,250,0.1);
+      transition: transform 0.3s ease;
+    }
+    .item-card:hover {
+      transform: translateY(-4px);
+    }
+    .status-badge {
+      background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+      color: white; padding: 6px 16px;
+      border-radius: 20px; font-size: 0.85rem;
+      font-weight: 600;
+    }
+    .notification {
+      position: fixed; top: 20px; right: 20px;
+      background: white; padding: 16px 24px;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+      transform: translateX(100%);
+      transition: transform 0.3s ease;
+      z-index: 1000;
+    }
+    .notification.show {
+      transform: translateX(0);
+    }
+    .logo-image {
+      width: 220px;
+      height: auto;
+      object-fit: contain;
+      transition: box-shadow .3s;
+    }
+    .logo-image:hover {
+      box-shadow: 0 10px 40px rgba(96,165,250,0.3);
+      scale: 1.03;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .fade-in {
+      animation: fadeIn 0.6s ease forwards;
+    }
+    #splashLogoBg {
+      position: fixed;
+      z-index: 2000;
+      inset: 0;
+      background: linear-gradient(135deg, #60a5fa 0%, #34d399 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.5s;
+      opacity: 1;
+    }
+    #splashLogoBg.hide {
+      opacity: 0;
+      pointer-events: none;
+    }
+    #splashLogoBg img {
+      width: 420px;
+      height: auto;
+      border-radius: 32px;
+      box-shadow: 0 8px 50px rgba(96,165,250,0.23);
+      animation: logoPop 1.3s cubic-bezier(.25,1.7,.36,1) forwards;
+    }
+    @keyframes logoPop {
+      0% { transform: scale(0.7) rotate(-8deg); opacity: 0;}
+      60% { transform: scale(1.12) rotate(4deg); opacity: 1;}
+      100% { transform: scale(1) rotate(0deg); opacity: 1;}
+    }
+    @media (max-width: 600px) {
+      #splashLogoBg img {
+        width: 90vw;
+        max-width: 320px;
+      }
+      .logo-image {
+        width: 50vw;
+        max-width: 140px;
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+  <!-- Splash Logo -->
+  <div id="splashLogoBg">
+    <img src="https://www.freeiconspng.com/uploads/hospital-icon-23.png" alt="MEDI-TRACK Logo" loading="lazy" />
+  </div>
+
+  <!-- Notification -->
+  <div id="notification" class="notification glass-effect hidden">
+    <div class="flex items-center gap-3">
+      <i class="fas fa-check-circle text-green-500 text-xl"></i>
+      <span id="notification-message"></span>
+    </div>
+  </div>
+
+  <div class="container max-w-6xl mx-auto" style="display:none" id="mainContent">
+    <!-- Home Section -->
+    <div id="home" class="glass-effect p-8 md:p-12 text-center fade-in">
+      <div class="mb-8">
+        <img src="https://www.freeiconspng.com/uploads/hospital-icon-23.png"
+             alt="MEDI-TRACK Logo"
+             class="logo-image mx-auto mb-6 rounded-2xl shadow-lg" loading="lazy">
+        <h1 class="text-4xl md:text-5xl font-bold gradient-text mb-4">MEDI-TRACK</h1>
+        <p class="text-xl text-gray-600 mb-8">Simplifying hospital visits with online appointments, document storage, and reminders.</p>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div class="text-center p-6 bg-white rounded-2xl shadow-md hover:shadow-xl transition-shadow">
+          <i class="fas fa-sign-in-alt text-4xl text-blue-500 mb-4"></i>
+          <h3 class="font-semibold text-lg mb-2">Login</h3>
+          <p class="text-gray-600">Access your dashboard</p>
+          <button onclick="showForm('loginForm')" class="btn-primary mt-4 w-full" aria-label="Login to your account">Login</button>
+        </div>
+        <div class="text-center p-6 bg-white rounded-2xl shadow-md hover:shadow-xl transition-shadow">
+          <i class="fas fa-user-plus text-4xl text-green-500 mb-4"></i>
+          <h3 class="font-semibold text-lg mb-2">Create Account</h3>
+          <p class="text-gray-600">Sign up for new users</p>
+          <button onclick="showForm('createAccountForm')" class="btn-primary mt-4 w-full" aria-label="Create a new account">Create Account</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Login Form -->
+    <form id="loginForm" class="glass-effect p-8 md:p-10 hidden">
+      <div class="flex items-center justify-between mb-8">
+        <h2 class="text-2xl font-bold gradient-text">Login</h2>
+        <button type="button" onclick="backToHome()" class="text-gray-500 hover:text-gray-700">
+          <i class="fas fa-times text-2xl"></i>
+        </button>
+      </div>
+      <div class="space-y-4">
+        <input type="email" name="email" placeholder="Your Email" class="form-input" required>
+        <input type="password" name="password" placeholder="Password" class="form-input" required>
+      </div>
+      <button type="submit" class="btn-primary w-full mt-6">
+        <i class="fas fa-sign-in-alt mr-2"></i>Login
+      </button>
+      <button type="button" onclick="backToHome()" class="btn-back">
+        <i class="fas fa-arrow-left mr-2"></i>Back to Main Page
+      </button>
+    </form>
+
+    <!-- Create Account Form -->
+    <form id="createAccountForm" class="glass-effect p-8 md:p-10 hidden">
+      <div class="flex items-center justify-between mb-8">
+        <h2 class="text-2xl font-bold gradient-text">Create Account</h2>
+        <button type="button" onclick="backToHome()" class="text-gray-500 hover:text-gray-700">
+          <i class="fas fa-times text-2xl"></i>
+        </button>
+      </div>
+      <div class="space-y-4">
+        <input type="text" name="name" placeholder="Your Full Name" class="form-input" required>
+        <input type="number" name="age" placeholder="Your Age" class="form-input" required min="1">
+        <input type="email" name="email" placeholder="Your Email" class="form-input" required>
+        <input type="password" name="password" placeholder="New Password" class="form-input" required>
+        <input type="password" name="confirm_password" placeholder="Confirm Password" class="form-input" required>
+      </div>
+      <button type="submit" class="btn-primary w-full mt-6">
+        <i class="fas fa-user-plus mr-2"></i>Create Account
+      </button>
+      <button type="button" onclick="backToHome()" class="btn-back">
+        <i class="fas fa-arrow-left mr-2"></i>Back to Main Page
+      </button>
+    </form>
+
+    <!-- Dashboard -->
+    <div id="dashboard" class="glass-effect p-8 md:p-12 hidden">
+      <div class="flex items-center justify-between mb-8">
+        <h2 class="text-2xl font-bold gradient-text">Dashboard</h2>
+        <button onclick="logout()" class="text-gray-500 hover:text-gray-700">
+          <i class="fas fa-sign-out-alt text-2xl"></i>
+        </button>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <button onclick="showForm('bookAppointmentForm')" class="btn-primary">
+          <i class="fas fa-calendar-check mr-2"></i>Book Appointment
+        </button>
+        <button onclick="showForm('uploadDocumentForm')" class="btn-primary">
+          <i class="fas fa-upload mr-2"></i>Upload Document
+        </button>
+        <button onclick="showForm('viewAppointments')" class="btn-secondary">
+          <i class="fas fa-list mr-2"></i>View Appointments
+        </button>
+        <button onclick="showForm('viewDocuments')" class="btn-secondary">
+          <i class="fas fa-folder-open mr-2"></i>View Documents
+        </button>
+        <button onclick="showForm('viewNotifications')" class="btn-secondary">
+          <i class="fas fa-bell mr-2"></i>Notifications
+        </button>
+      </div>
+      <button onclick="backToHome()" class="btn-back">
+        <i class="fas fa-arrow-left mr-2"></i>Logout
+      </button>
+    </div>
+
+    <!-- Book Appointment Form -->
+    <form id="bookAppointmentForm" class="glass-effect p-8 md:p-10 hidden">
+      <div class="flex items-center justify-between mb-8">
+        <h2 class="text-2xl font-bold gradient-text">Book Appointment</h2>
+        <button type="button" onclick="showForm('dashboard')" class="text-gray-500 hover:text-gray-700">
+          <i class="fas fa-times text-2xl"></i>
+        </button>
+      </div>
+      <div class="space-y-4">
+        <select name="doctor" class="form-input" required>
+          <option value="">Select Doctor</option>
+          <option value="Dr. Smith - Cardiology">Dr. Smith - Cardiology</option>
+          <option value="Dr. Johnson - Neurology">Dr. Johnson - Neurology</option>
+          <option value="Dr. Williams - Pediatrics">Dr. Williams - Pediatrics</option>
+        </select>
+        <input type="date" name="date" class="form-input" required>
+        <select name="time" class="form-input" required>
+          <option value="">Select Time Slot</option>
+          <option value="09:00 AM">09:00 AM</option>
+          <option value="10:00 AM">10:00 AM</option>
+          <option value="11:00 AM">11:00 AM</option>
+        </select>
+      </div>
+      <button type="submit" class="btn-primary w-full mt-6">
+        <i class="fas fa-calendar-check mr-2"></i>Book Now
+      </button>
+      <button type="button" onclick="showForm('dashboard')" class="btn-back">
+        <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+      </button>
+    </form>
+
+    <!-- Upload Document Form -->
+    <form id="uploadDocumentForm" class="glass-effect p-8 md:p-10 hidden">
+      <div class="flex items-center justify-between mb-8">
+        <h2 class="text-2xl font-bold gradient-text">Upload Medical Document</h2>
+        <button type="button" onclick="showForm('dashboard')" class="text-gray-500 hover:text-gray-700">
+          <i class="fas fa-times text-2xl"></i>
+        </button>
+      </div>
+      <div class="space-y-4">
+        <input type="text" name="doc_name" placeholder="Document Name" class="form-input" required>
+        <textarea name="doc_description" placeholder="Description" class="form-input" rows="3"></textarea>
+        <input type="file" name="doc_file" accept="image/*,application/pdf" class="form-input" required>
+      </div>
+      <button type="submit" class="btn-primary w-full mt-6">
+        <i class="fas fa-upload mr-2"></i>Upload
+      </button>
+      <button type="button" onclick="showForm('dashboard')" class="btn-back">
+        <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+      </button>
+    </form>
+
+    <!-- View Appointments -->
+    <div id="viewAppointments" class="glass-effect p-8 md:p-10 hidden">
+      <div class="flex items-center justify-between mb-8">
+        <h2 class="text-2xl font-bold gradient-text">Your Appointments</h2>
+        <button onclick="showForm('dashboard')" class="text-gray-500 hover:text-gray-700">
+          <i class="fas fa-times text-2xl"></i>
+        </button>
+      </div>
+      <div id="appointmentsList">
+        <div class="text-center py-8 text-gray-500">
+          <i class="fas fa-inbox text-4xl mb-3"></i>
+          <p>No appointments yet.</p>
+        </div>
+      </div>
+      <button onclick="showForm('dashboard')" class="btn-back">
+        <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+      </button>
+    </div>
+
+    <!-- View Documents -->
+    <div id="viewDocuments" class="glass-effect p-8 md:p-10 hidden">
+      <div class="flex items-center justify-between mb-8">
+        <h2 class="text-2xl font-bold gradient-text">Your Documents</h2>
+        <button onclick="showForm('dashboard')" class="text-gray-500 hover:text-gray-700">
+          <i class="fas fa-times text-2xl"></i>
+        </button>
+      </div>
+      <div id="documentsList">
+        <div class="text-center py-8 text-gray-500">
+          <i class="fas fa-inbox text-4xl mb-3"></i>
+          <p>No documents uploaded yet.</p>
+        </div>
+      </div>
+      <button onclick="showForm('dashboard')" class="btn-back">
+        <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+      </button>
+    </div>
+
+    <!-- View Notifications -->
+    <div id="viewNotifications" class="glass-effect p-8 md:p-10 hidden">
+      <div class="flex items-center justify-between mb-8">
+        <h2 class="text-2xl font-bold gradient-text">Notifications</h2>
+        <button onclick="showForm('dashboard')" class="text-gray-500 hover:text-gray-700">
+          <i class="fas fa-times text-2xl"></i>
+        </button>
+      </div>
+      <div id="notificationsList">
+        <div class="text-center py-8 text-gray-500">
+          <i class="fas fa-inbox text-4xl mb-3"></i>
+          <p>No notifications yet.</p>
+        </div>
+      </div>
+      <button onclick="showForm('dashboard')" class="btn-back">
+        <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // Splash logo logic
+    window.addEventListener('DOMContentLoaded', function() {
+      const splash = document.getElementById('splashLogoBg');
+      const mainContent = document.getElementById('mainContent');
+      setTimeout(() => {
+        splash.classList.add('hide');
+        setTimeout(() => {
+          splash.style.display = 'none';
+          mainContent.style.display = 'block';
+        }, 500);
+      }, 2000);
+    });
+
+    function initStorage() {
+      if (!localStorage.getItem('users')) localStorage.setItem('users', JSON.stringify([]));
+      if (!localStorage.getItem('appointments')) localStorage.setItem('appointments', JSON.stringify([]));
+      if (!localStorage.getItem('documents')) localStorage.setItem('documents', JSON.stringify([]));
+      if (!localStorage.getItem('notifications')) localStorage.setItem('notifications', JSON.stringify([]));
+    }
+
+    function showNotification(message) {
+      const notification = document.getElementById('notification');
+      document.getElementById('notification-message').textContent = message;
+      notification.classList.remove('hidden');
+      notification.classList.add('show');
+      setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => notification.classList.add('hidden'), 300);
+      }, 3000);
+    }
+
+    function escapeHTML(str) {
+      return str.replace(/[&<>"']/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[m]);
+    }
+
+    function validateEmail(email) {
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    }
+
+    function showForm(formId) {
+      ['home', 'loginForm', 'createAccountForm', 'dashboard', 'bookAppointmentForm', 'uploadDocumentForm', 'viewAppointments', 'viewDocuments', 'viewNotifications'].forEach(id => {
+        document.getElementById(id).style.display = id === formId ? 'block' : 'none';
+      });
+      if (formId === 'viewAppointments') updateAppointmentsList();
+      if (formId === 'viewDocuments') updateDocumentsList();
+      if (formId === 'viewNotifications') updateNotificationsList();
+      if (formId === 'dashboard') updateNotifications(); // Mock reminders
+    }
+
+    function backToHome() { 
+      localStorage.removeItem('currentUser');
+      showForm('home'); 
+    }
+
+    function logout() {
+      localStorage.removeItem('currentUser');
+      showForm('home');
+    }
+
+    function getCurrentUser() {
+      return JSON.parse(localStorage.getItem('currentUser'));
+    }
+
+    function updateAppointmentsList() {
+      const user = getCurrentUser();
+      if (!user) return;
+      const appointments = JSON.parse(localStorage.getItem('appointments') || '[]').filter(a => a.userEmail === user.email);
+      const container = document.getElementById('appointmentsList');
+      if (appointments.length === 0) {
+        container.innerHTML = `<div class="text-center py-8 text-gray-500"><i class="fas fa-inbox text-4xl mb-3"></i><p>No appointments yet.</p></div>`;
+        return;
+      }
+      container.innerHTML = '';
+      appointments.forEach(app => {
+        const div = document.createElement('div');
+        div.className = 'item-card';
+        div.innerHTML = `
+          <h4 class="font-semibold text-lg">${escapeHTML(app.doctor)}</h4>
+          <p>Date: ${escapeHTML(app.date)}</p>
+          <p>Time: ${escapeHTML(app.time)}</p>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function updateDocumentsList() {
+      const user = getCurrentUser();
+      if (!user) return;
+      const documents = JSON.parse(localStorage.getItem('documents') || '[]').filter(d => d.userEmail === user.email);
+      const container = document.getElementById('documentsList');
+      if (documents.length === 0) {
+        container.innerHTML = `<div class="text-center py-8 text-gray-500"><i class="fas fa-inbox text-4xl mb-3"></i><p>No documents uploaded yet.</p></div>`;
+        return;
+      }
+      container.innerHTML = '';
+      documents.forEach(doc => {
+        const div = document.createElement('div');
+        div.className = 'item-card';
+        div.innerHTML = `
+          <h4 class="font-semibold text-lg">${escapeHTML(doc.doc_name)}</h4>
+          <p>${escapeHTML(doc.doc_description || 'No description')}</p>
+          ${doc.doc_file ? `<a href="${doc.doc_file}" target="_blank">View Document</a>` : ''}
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function updateNotificationsList() {
+      const user = getCurrentUser();
+      if (!user) return;
+      const notifications = JSON.parse(localStorage.getItem('notifications') || '[]').filter(n => n.userEmail === user.email);
+      const container = document.getElementById('notificationsList');
+      if (notifications.length === 0) {
+        container.innerHTML = `<div class="text-center py-8 text-gray-500"><i class="fas fa-inbox text-4xl mb-3"></i><p>No notifications yet.</p></div>`;
+        return;
+      }
+      container.innerHTML = '';
+      notifications.forEach(notif => {
+        const div = document.createElement('div');
+        div.className = 'item-card';
+        div.innerHTML = `<p>${escapeHTML(notif.message)}</p>`;
+        container.appendChild(div);
+      });
+    }
+
+    function updateNotifications() {
+      const user = getCurrentUser();
+      if (!user) return;
+      const appointments = JSON.parse(localStorage.getItem('appointments') || '[]').filter(a => a.userEmail === user.email);
+      const notifications = [];
+      appointments.forEach(app => {
+        const appDate = new Date(app.date);
+        const today = new Date();
+        if (appDate > today) {
+          const diffDays = Math.ceil((appDate - today) / (1000 * 60 * 60 * 24));
+          if (diffDays === 1) {
+            notifications.push({ userEmail: user.email, message: `Reminder: Your appointment with ${app.doctor} is tomorrow at ${app.time}.` });
+          }
+        }
+      });
+      localStorage.setItem('notifications', JSON.stringify(notifications));
+    }
+
+    document.getElementById('loginForm').onsubmit = function(e) {
+      e.preventDefault();
+      const form = new FormData(this);
+      const email = form.get('email');
+      const password = form.get('password');
+      if (!validateEmail(email)) {
+        showNotification('Invalid email address.');
+        return;
+      }
+      const users = JSON.parse(localStorage.getItem('users') || '[]');
+      const user = users.find(u => u.email === email && u.password === password);
+      if (user) {
+        localStorage.setItem('currentUser', JSON.stringify(user));
+        showNotification('Login successful!');
+        showForm('dashboard');
+      } else {
+        showNotification('Invalid credentials.');
+      }
+    };
+
+    document.getElementById('createAccountForm').onsubmit = function(e) {
+      e.preventDefault();
+      const form = new FormData(this);
+      const name = form.get('name');
+      const age = form.get('age');
+      const email = form.get('email');
+      const password = form.get('password');
+      const confirmPassword = form.get('confirm_password');
+      if (!validateEmail(email)) {
+        showNotification('Invalid email address.');
+        return;
+      }
+      if (password !== confirmPassword) {
+        showNotification('Passwords do not match.');
+        return;
+      }
+      const users = JSON.parse(localStorage.getItem('users') || '[]');
+      if (users.find(u => u.email === email)) {
+        showNotification('Email already exists.');
+        return;
+      }
+      users.push({ name, age, email, password });
+      localStorage.setItem('users', JSON.stringify(users));
+      showNotification('Account created successfully! Please login.');
+      showForm('loginForm');
+    };
+
+    document.getElementById('bookAppointmentForm').onsubmit = function(e) {
+      e.preventDefault();
+      const user = getCurrentUser();
+      if (!user) return;
+      const form = new FormData(this);
+      const appointment = { ...Object.fromEntries(form), userEmail: user.email, timestamp: new Date().toISOString() };
+      const arr = JSON.parse(localStorage.getItem('appointments') || '[]');
+      arr.push(appointment);
+      localStorage.setItem('appointments', JSON.stringify(arr));
+      showNotification('Appointment booked successfully!');
+      showForm('dashboard');
+    };
+
+    document.getElementById('uploadDocumentForm').onsubmit = function(e) {
+      e.preventDefault();
+      const user = getCurrentUser();
+      if (!user) return;
+      const form = new FormData(this);
+      const file = form.get('doc_file');
+      if (file && file.size > 0) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const document = { ...Object.fromEntries(form), doc_file: e.target.result, userEmail: user.email, timestamp: new Date().toISOString() };
+          const arr = JSON.parse(localStorage.getItem('documents') || '[]');
+          arr.push(document);
+          localStorage.setItem('documents', JSON.stringify(arr));
+          showNotification('Document uploaded successfully!');
+          showForm('dashboard');
+        };
+        reader.readAsDataURL(file);
+      }
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+      initStorage();
+      if (localStorage.getItem('currentUser')) {
+        showForm('dashboard');
+      } else {
+        showForm('home');
+      }
+    });
+  </script>
+</body>
+</html>
